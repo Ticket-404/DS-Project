@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Chronos</title>
+        <link rel="stylesheet" href="css/reset.css" />
+        <link rel="stylesheet" href="css/app.css" />
+        <link rel="stylesheet" href="css/time.css" />
+        <link
+            rel="icon"
+            type="image/png"
+            href="https://cdn.shopify.com/s/files/1/0743/9833/5116/files/Group_162618.png?v=1764937152"
+        />
+    </head>
+    <body>
+        <div class="app-shell">
+            <header class="app-shell__header">
+                <div class="app-shell__logo">
+                    <a aria-label="Go to profile" href="?page=profile">
+                        <picture>
+                            <source
+                                media="(max-width: 768px)"
+                                srcset="https://cdn.shopify.com/s/files/1/0743/9833/5116/files/transaprent_logo_white.svg?v=1766856990"
+                            />
+                            <img
+                                src="https://cdn.shopify.com/s/files/1/0743/9833/5116/files/White_Logo_Max_Size.svg?v=1764946131"
+                                alt="Digital Settings"
+                            />
+                        </picture>
+                    </a>
+                </div>
+                <div class="app-shell__nav-wrap" data-app-nav>
+                    <div class="app-shell__user" aria-live="polite">
+                        <span class="app-shell__user-label"></span>
+                        <span class="app-shell__user-name"></span>
+                    </div>
+                    <div class="app-shell__menu">
+                        <input type="checkbox" id="app-shell-toggle" class="app-shell__nav-toggle" />
+                        <label
+                            for="app-shell-toggle"
+                            class="app-shell__burger"
+                            aria-label="Toggle navigation"
+                            aria-controls="app-shell-nav"
+                        >
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span class="app-shell__burger-text">Menu</span>
+                        </label>
+                        <nav aria-label="Primary" class="app-shell__nav" id="app-shell-nav">
+                            <a class="app-shell__link" href="?page=profile" data-route="profile">Profile</a>
+                            <a class="app-shell__link" href="?page=schedule" data-route="schedule">My schedule</a>
+                            <a class="app-shell__link" href="?page=schedule-request" data-route="schedule-request">
+                                Register schedule
+                            </a>
+                            <a class="app-shell__link is-hidden" href="?page=approvals" data-route="approvals" data-admin-link>
+                                Approvals
+                            </a>
+                            <a class="app-shell__link" href="?page=vacations" data-route="vacations">Vacations</a>
+                            <a class="app-shell__link" href="?page=sick-days" data-route="sick-days">Sick days</a>
+                            <a class="app-shell__link" href="?page=login" data-route="login">Logout</a>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <main class="app-shell__main" data-app-content></main>
+            <footer class="app-shell__footer">
+                <p>&copy; 2026 Chronos &bull; Tracking work across Asia/Tbilisi</p>
+            </footer>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script type="module" src="js/app.js"></script>
+    </body>
+</html>
