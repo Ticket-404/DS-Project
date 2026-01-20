@@ -62,6 +62,19 @@ const normalizeRoute = () => {
     return params.get("page") || "profile";
 };
 
+const applyLoginVisibility = (routeKey) => {
+    const isLogin = routeKey === "login";
+    if (navWrapEl) {
+        navWrapEl.classList.toggle("is-hidden", isLogin);
+    }
+    if (userBlockEl) {
+        userBlockEl.classList.toggle("is-hidden", isLogin);
+    }
+    if (navEl && isLogin) {
+        navEl.innerHTML = loginNavMarkup;
+    }
+};
+
 const updatePageParam = (routeKey, replace = false) => {
     const url = new URL(window.location.href);
     url.searchParams.set("page", routeKey);
@@ -108,6 +121,8 @@ const renderRoute = async () => {
     const routeKey = normalizeRoute();
     const safeKey = routes[routeKey] ? routeKey : "profile";
     const route = routes[safeKey];
+
+    applyLoginVisibility(safeKey);
 
     if (!new URLSearchParams(window.location.search).get("page")) {
         updatePageParam(safeKey, true);
@@ -168,6 +183,7 @@ const renderRoute = async () => {
 };
 
 stripIndexHtml();
+applyLoginVisibility(normalizeRoute());
 window.addEventListener("popstate", renderRoute);
 
 if (logoutLink) {
