@@ -82,7 +82,7 @@ const routes = {
         requireAuth: true,
     },
     login: { title: titleLogin, render: renderLogin, onMount: onMountLogin, requireAuth: false },
-    tits: { title: titleTits, render: renderTits, requireAuth: false },
+    7175: { title: titleTits, render: renderTits, requireAuth: false },
 };
 
 const routeCache = new Map();
@@ -219,8 +219,8 @@ const renderRoute = async () => {
     }
     document.body.classList.toggle("is-login", isLogin);
     document.documentElement.classList.toggle("is-login", isLogin);
-    document.body.classList.toggle("is-easter", routeKey === "tits");
-    document.documentElement.classList.toggle("is-easter", routeKey === "tits");
+    document.body.classList.toggle("is-easter", routeKey === "7175");
+    document.documentElement.classList.toggle("is-easter", routeKey === "7175");
 
     const currentUserId = currentUser?.id || "anon";
     if (cachedUserId !== currentUserId) {
