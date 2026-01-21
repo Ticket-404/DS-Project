@@ -106,6 +106,10 @@ html.is-easter::-webkit-scrollbar {
     color: inherit
 }
 
+.app-shell__footer-link:hover {
+    text-decoration: none
+}
+
 .app-shell__nav {
     display: flex;
     gap: 1rem;
