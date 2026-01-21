@@ -25,7 +25,6 @@ export const render = () => `
                     <span class="clock-card__date" data-clock-date>--</span>
                 </div>
                 <div class="chip-row">
-                    <span class="chip" data-work-type>Schedule: --</span>
                     <span class="chip chip--ok">WiFi lock disabled</span>
                 </div>
             </div>

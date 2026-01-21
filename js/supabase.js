@@ -2,7 +2,48 @@ const SUPABASE_URL = "https://chwqgbhwtfgcvdtffsvv.supabase.co";
 const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNod3FnYmh3dGZnY3ZkdGZmc3Z2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjE1NzEsImV4cCI6MjA4NDQ5NzU3MX0.oPvqis-RrTEcTRI73A1YSjT1PbYAHovf5Y6xKUp4uaM";
 
-const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let client = null;
+let loadPromise = null;
+
+const loadSupabase = () => {
+    if (window.supabase) {
+        return Promise.resolve(window.supabase);
+    }
+
+    if (loadPromise) {
+        return loadPromise;
+    }
+
+    loadPromise = new Promise((resolve, reject) => {
+        const existing = document.querySelector("script[data-supabase-sdk]");
+        if (existing) {
+            existing.addEventListener("load", () => resolve(window.supabase));
+            existing.addEventListener("error", () => reject(new Error("Failed to load Supabase SDK.")));
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+        script.async = true;
+        script.defer = true;
+        script.dataset.supabaseSdk = "true";
+        script.onload = () => resolve(window.supabase);
+        script.onerror = () => reject(new Error("Failed to load Supabase SDK."));
+        document.head.appendChild(script);
+    });
+
+    return loadPromise;
+};
+
+const getClient = async () => {
+    if (client) return client;
+    const supabase = await loadSupabase();
+    if (!supabase) {
+        throw new Error("Supabase SDK unavailable.");
+    }
+    client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return client;
+};
 const USER_STORAGE_KEY = "chronos-user";
 
 const normalizeUser = (user) => {
@@ -39,6 +80,7 @@ export const clearCurrentUser = () => {
 };
 
 export const signInWithPassword = async (email, password) => {
+    const client = await getClient();
     const { data, error } = await client
         .from("accounts")
         .select("*")
@@ -59,6 +101,7 @@ export const signInWithPassword = async (email, password) => {
 };
 
 export const fetchScheduleSlots = async (employeeId) => {
+    const client = await getClient();
     const { data, error } = await client
         .from("schedule_slots")
         .select("*")
@@ -73,6 +116,7 @@ export const fetchScheduleSlots = async (employeeId) => {
 };
 
 export const fetchApprovedScheduleRequests = async (employeeId) => {
+    const client = await getClient();
     const { data, error } = await client
         .from("schedule_requests")
         .select("*")
@@ -88,6 +132,7 @@ export const fetchApprovedScheduleRequests = async (employeeId) => {
 };
 
 export const fetchAllApprovedScheduleRequests = async () => {
+    const client = await getClient();
     const { data, error } = await client
         .from("schedule_requests")
         .select("*")
@@ -102,6 +147,7 @@ export const fetchAllApprovedScheduleRequests = async () => {
 };
 
 export const createScheduleSlot = async (payload) => {
+    const client = await getClient();
     const { data, error } = await client.from("schedule_slots").insert(payload).select("*");
     if (error) {
         throw error;
@@ -110,6 +156,7 @@ export const createScheduleSlot = async (payload) => {
 };
 
 export const fetchAllScheduleSlots = async () => {
+    const client = await getClient();
     const { data, error } = await client
         .from("schedule_slots")
         .select("*")
@@ -123,6 +170,7 @@ export const fetchAllScheduleSlots = async () => {
 };
 
 export const fetchScheduleRequests = async (employeeId) => {
+    const client = await getClient();
     const { data, error } = await client
         .from("schedule_requests")
         .select("*")
@@ -137,6 +185,7 @@ export const fetchScheduleRequests = async (employeeId) => {
 };
 
 export const fetchAllScheduleRequests = async () => {
+    const client = await getClient();
     const { data, error } = await client
         .from("schedule_requests")
         .select("*")
@@ -148,6 +197,7 @@ export const fetchAllScheduleRequests = async () => {
 };
 
 export const createScheduleRequest = async (payload) => {
+    const client = await getClient();
     const { data, error } = await client.from("schedule_requests").insert(payload).select("*");
     if (error) {
         throw error;
@@ -156,6 +206,7 @@ export const createScheduleRequest = async (payload) => {
 };
 
 export const updateScheduleRequestStatus = async (id, status) => {
+    const client = await getClient();
     const { data, error } = await client
         .from("schedule_requests")
         .update({ status })
@@ -169,6 +220,7 @@ export const updateScheduleRequestStatus = async (id, status) => {
 };
 
 export const deleteScheduleRequest = async (id) => {
+    const client = await getClient();
     const { error } = await client.from("schedule_requests").delete().eq("id", id);
     if (error) {
         throw error;
@@ -176,6 +228,7 @@ export const deleteScheduleRequest = async (id) => {
 };
 
 export const fetchVacations = async (employeeId) => {
+    const client = await getClient();
     const { data, error } = await client
         .from("vacations")
         .select("*")
@@ -190,6 +243,7 @@ export const fetchVacations = async (employeeId) => {
 };
 
 export const fetchAllVacations = async () => {
+    const client = await getClient();
     const { data, error } = await client
         .from("vacations")
         .select("*")
@@ -201,6 +255,7 @@ export const fetchAllVacations = async () => {
 };
 
 export const createVacation = async (payload) => {
+    const client = await getClient();
     const { data, error } = await client.from("vacations").insert(payload).select("*");
     if (error) {
         throw error;
@@ -209,6 +264,7 @@ export const createVacation = async (payload) => {
 };
 
 export const updateVacationStatus = async (id, status) => {
+    const client = await getClient();
     const { data, error } = await client
         .from("vacations")
         .update({ status })
@@ -222,6 +278,7 @@ export const updateVacationStatus = async (id, status) => {
 };
 
 export const fetchSickDays = async (employeeId) => {
+    const client = await getClient();
     const { data, error } = await client
         .from("sick_days")
         .select("*")
@@ -236,6 +293,7 @@ export const fetchSickDays = async (employeeId) => {
 };
 
 export const fetchAllSickDays = async () => {
+    const client = await getClient();
     const { data, error } = await client
         .from("sick_days")
         .select("*")
@@ -247,6 +305,7 @@ export const fetchAllSickDays = async () => {
 };
 
 export const createSickDay = async (payload) => {
+    const client = await getClient();
     const { data, error } = await client.from("sick_days").insert(payload).select("*");
     if (error) {
         throw error;
@@ -255,6 +314,7 @@ export const createSickDay = async (payload) => {
 };
 
 export const updateSickDayStatus = async (id, status) => {
+    const client = await getClient();
     const { data, error } = await client
         .from("sick_days")
         .update({ status })
@@ -269,6 +329,7 @@ export const updateSickDayStatus = async (id, status) => {
 
 export const uploadSickDocument = async (file, employeeId) => {
     if (!file) return null;
+    const client = await getClient();
     const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
     const path = `sick-docs/${employeeId}/${Date.now()}-${safeName}`;
 

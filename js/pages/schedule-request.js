@@ -41,7 +41,6 @@ export const render = () => `
                     </div>
                     <div class="vacations-form__actions">
                         <button type="submit" class="primary-button">Submit schedule</button>
-                        <span class="vacations-form__meta">Pending approvals: 4</span>
                     </div>
                     <p class="form-error" data-schedule-message></p>
                 </form>
