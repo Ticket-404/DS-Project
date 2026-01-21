@@ -47,6 +47,26 @@ body.is-login {
     scrollbar-gutter: auto
 }
 
+body.is-easter {
+    scrollbar-width: none;
+    -ms-overflow-style: none
+}
+
+body.is-easter::-webkit-scrollbar {
+    width: 0;
+    height: 0
+}
+
+html.is-easter {
+    scrollbar-width: none;
+    -ms-overflow-style: none
+}
+
+html.is-easter::-webkit-scrollbar {
+    width: 0;
+    height: 0
+}
+
 .app-shell {
     min-height: 100vh;
     display: flex;
@@ -65,7 +85,7 @@ body.is-login {
     backdrop-filter: var(--blur);
     background: linear-gradient(90deg,#7c5dff0d,#3ccfcf0d);
     position: relative;
-    z-index: 50
+    z-index: 100
 }
 
 .app-shell__logo {
@@ -78,6 +98,12 @@ body.is-login {
     height: 28px;
     width: auto;
     display: block
+}
+
+.app-shell__footer-link {
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit
 }
 
 .app-shell__nav {
@@ -296,6 +322,45 @@ body.is-login {
     text-align: center;
     max-width: 600px;
     margin: 0 auto
+}
+
+.easter-page {
+    display: grid;
+    place-items: center;
+    padding: 2rem 0
+}
+
+.easter-card {
+    width: min(720px,92vw);
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: #0a1022eb;
+    box-shadow: 0 24px 60px #00000073;
+    padding: 1.5rem;
+    text-align: center
+}
+
+.easter-card h1 {
+    margin-bottom: .5rem
+}
+
+.easter-video {
+    margin: 1rem 0 .75rem
+}
+
+.easter-video video {
+    width: 100%;
+    max-height: min(45vh,340px);
+    object-fit: contain;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 18px 40px #00000066;
+    display: block
+}
+
+.easter-back {
+    display: inline-flex;
+    justify-content: center
 }
 
 .page-error--not-found {
@@ -883,6 +948,12 @@ body.is-login {
 
     .app-shell__logo img {
         height: 50px
+    }
+
+    .app-shell__easter {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px
     }
 
     .app-shell__main {

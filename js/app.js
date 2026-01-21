@@ -35,6 +35,7 @@ import {
     onMount as onMountApprovals,
     refresh as refreshApprovals,
 } from "./pages/approvals.js";
+import { render as renderTits, title as titleTits } from "./pages/tits.js";
 import { clearCurrentUser, getCurrentUser } from "./supabase.js";
 
 const routes = {
@@ -81,6 +82,7 @@ const routes = {
         requireAuth: true,
     },
     login: { title: titleLogin, render: renderLogin, onMount: onMountLogin, requireAuth: false },
+    tits: { title: titleTits, render: renderTits, requireAuth: false },
 };
 
 const routeCache = new Map();
@@ -121,7 +123,7 @@ const closeMobileNav = () => {
 
 const normalizeRoute = () => {
     const params = new URLSearchParams(window.location.search);
-    return params.get("page") || "profile";
+    return (params.get("page") || "profile").toLowerCase();
 };
 
 const applyLoginVisibility = (routeKey) => {
@@ -178,7 +180,6 @@ const updateUserHeader = (routeKey) => {
         const shouldShowNav = routeKey !== "login" && Boolean(currentUser);
         navWrapEl.classList.toggle("is-hidden", !shouldShowNav);
     }
-
     const adminLinkEl = document.querySelector("[data-admin-link]");
     if (adminLinkEl) {
         const isAdmin = currentUser?.is_admin === true || currentUser?.role === "admin";
@@ -218,6 +219,8 @@ const renderRoute = async () => {
     }
     document.body.classList.toggle("is-login", isLogin);
     document.documentElement.classList.toggle("is-login", isLogin);
+    document.body.classList.toggle("is-easter", routeKey === "tits");
+    document.documentElement.classList.toggle("is-easter", routeKey === "tits");
 
     const currentUserId = currentUser?.id || "anon";
     if (cachedUserId !== currentUserId) {
