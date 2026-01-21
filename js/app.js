@@ -145,6 +145,7 @@ const renderRoute = async () => {
         navEl.innerHTML = isLogin ? loginNavMarkup : defaultNavMarkup;
     }
     document.body.classList.toggle("is-login", isLogin);
+    document.documentElement.classList.toggle("is-login", isLogin);
 
     const currentUserId = currentUser?.id || "anon";
     if (cachedUserId !== currentUserId) {

@@ -24,6 +24,10 @@ html {
     background: #050814
 }
 
+html.is-login {
+    overflow-y: hidden
+}
+
 body {
     width: 100%;
     overflow-x: hidden;
@@ -32,7 +36,7 @@ body {
 }
 
 body.is-login {
-    overflow-y: auto;
+    overflow-y: visible;
     scrollbar-gutter: auto
 }
 
