@@ -25,7 +25,7 @@ html {
 }
 
 html.is-login {
-    overflow-y: hidden
+    overflow-y: auto
 }
 
 body {
@@ -36,7 +36,8 @@ body {
 }
 
 body.is-login {
-    overflow-y: visible;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     scrollbar-gutter: auto
 }
 
@@ -118,7 +119,14 @@ body.is-login {
     background: #ffffff0f;
     color: var(--text);
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
     transition: background .2s ease,transform .15s ease
+}
+
+.app-shell__burger:focus,
+.app-shell__burger:active {
+    background: #ffffff0f
 }
 
 .app-shell__burger:hover {
@@ -130,7 +138,8 @@ body.is-login {
     width: 18px;
     height: 2px;
     background: currentColor;
-    border-radius: 999px
+    border-radius: 999px;
+    transition: transform .2s ease,opacity .2s ease,width .2s ease
 }
 
 .app-shell__burger-text {
@@ -676,6 +685,15 @@ body.is-login {
     font-size: .8rem
 }
 
+.file-dropzone__filename {
+    margin-top: .35rem;
+    font-size: .8rem;
+    color: #dbe4ff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
 .file-dropzone:hover,.file-input:focus+.file-dropzone {
     border-color: #7c5dff99;
     box-shadow: 0 12px 26px #141c3c59;
@@ -909,14 +927,26 @@ body.is-login {
         gap: .35rem;
         position: absolute;
         right: 0;
+        left: auto;
         top: calc(100% + .75rem);
         min-width: 200px;
+        width: min(92vw,280px);
+        max-height: calc(100vh - 140px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         padding: .75rem;
         border-radius: 16px;
         background: #090e1ef5;
         box-shadow: 0 20px 45px #0006;
         border: 1px solid rgba(255,255,255,.08);
-        z-index: 10
+        z-index: 60
+    }
+
+    .app-shell__link {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: .7rem .85rem
     }
 
     .app-shell__nav-wrap {
@@ -936,11 +966,61 @@ body.is-login {
     .app-shell__nav-toggle:checked+.app-shell__burger+.app-shell__nav {
         display: flex
     }
+
+    .app-shell__nav-toggle:checked+.app-shell__burger span:nth-of-type(1) {
+        transform: translateY(6px) rotate(45deg)
+    }
+
+    .app-shell__nav-toggle:checked+.app-shell__burger span:nth-of-type(2) {
+        opacity: 0
+    }
+
+    .app-shell__nav-toggle:checked+.app-shell__burger span:nth-of-type(3) {
+        transform: translateY(-6px) rotate(-45deg)
+    }
 }
 
 @media(max-width: 600px) {
     :root {
         font-size:15px
+    }
+
+    .app-shell__header {
+        padding-top: .85rem;
+        padding-bottom: .85rem
+    }
+
+    .app-shell__main {
+        padding-left: .9rem;
+        padding-right: .9rem
+    }
+
+    .app-shell__footer {
+        padding-left: .9rem;
+        padding-right: .9rem
+    }
+
+    .home-hero,
+    .dashboard-barrier,
+    .status-card,
+    .action-panel,
+    .table-wrap,
+    .schedule-entry,
+    .vacations-row,
+    .vacations-pending,
+    .hero-panel,
+    .auth-panel,
+    .login-card {
+        border-radius: 16px
+    }
+
+    .home-hero {
+        padding: 1.5rem;
+        gap: 1.25rem
+    }
+
+    .home-hero__actions {
+        gap: .5rem
     }
 
     .home-hero,.dashboard-grid,.action-panel {
@@ -955,6 +1035,10 @@ body.is-login {
         padding: 1rem
     }
 
+    .action-panel {
+        padding: 1rem
+    }
+
     .primary-button,.secondary-button {
         width: 100%;
         text-align: center
@@ -962,6 +1046,57 @@ body.is-login {
 
     .chip-row {
         width: 100%
+    }
+
+    button:focus,
+    button:focus-visible,
+    .primary-button:focus,
+    .primary-button:focus-visible,
+    .secondary-button:focus,
+    .secondary-button:focus-visible,
+    .table-button:focus,
+    .table-button:focus-visible,
+    .app-shell__burger:focus,
+    .app-shell__burger:focus-visible {
+        outline: none;
+        box-shadow: none
+    }
+
+    .table-wrap {
+        padding: .35rem
+    }
+
+    .table-wrap .grid-table {
+        min-width: 540px
+    }
+
+    .grid-table th,
+    .grid-table td {
+        padding: .7rem .8rem
+    }
+
+    .vacations-form__actions {
+        flex-direction: column;
+        align-items: stretch
+    }
+
+    .vacations-actions {
+        width: 100%
+    }
+
+    .vacations-actions .primary-button,
+    .vacations-actions .secondary-button {
+        width: 100%
+    }
+
+    .login-grid {
+        gap: 1.25rem
+    }
+
+    .login-card,
+    .hero-panel,
+    .auth-panel {
+        padding: 1.25rem
     }
 }
 

@@ -97,14 +97,27 @@ const contentEl = document.querySelector("[data-app-content]");
 const mainEl = contentEl?.closest("main");
 const navEl = document.querySelector(".app-shell__nav");
 const defaultNavMarkup = navEl?.innerHTML || "";
-const loginNavMarkup = `
-`;
+const loginNavMarkup = defaultNavMarkup;
 const userNameEl = document.querySelector(".app-shell__user-name");
 const userLabelEl = document.querySelector(".app-shell__user-label");
 const userBlockEl = document.querySelector(".app-shell__user");
 const navWrapEl = document.querySelector("[data-app-nav]");
 const adminLinkEl = document.querySelector("[data-admin-link]");
 const logoutLink = document.querySelector("[data-route='login']");
+const navToggleEl = document.querySelector(".app-shell__nav-toggle");
+const navMenuEl = document.querySelector(".app-shell__menu");
+const navBurgerEl = document.querySelector(".app-shell__burger");
+
+const syncMobileNavAria = () => {
+    if (!navBurgerEl || !navToggleEl) return;
+    navBurgerEl.setAttribute("aria-expanded", navToggleEl.checked ? "true" : "false");
+};
+
+const closeMobileNav = () => {
+    if (!navToggleEl) return;
+    navToggleEl.checked = false;
+    syncMobileNavAria();
+};
 
 const normalizeRoute = () => {
     const params = new URLSearchParams(window.location.search);
@@ -175,6 +188,7 @@ const updateUserHeader = (routeKey) => {
 
 const renderRoute = async () => {
     if (!contentEl) return;
+    closeMobileNav();
 
     const currentUser = getCurrentUser();
     let routeKey = normalizeRoute();
@@ -253,6 +267,11 @@ stripIndexHtml();
 applyLoginVisibility(normalizeRoute());
 window.addEventListener("popstate", renderRoute);
 
+if (navToggleEl) {
+    navToggleEl.addEventListener("change", syncMobileNavAria);
+    syncMobileNavAria();
+}
+
 if (logoutLink) {
     logoutLink.addEventListener("click", (event) => {
         if (!getCurrentUser()) return;
@@ -282,6 +301,15 @@ document.addEventListener("click", (event) => {
     }
     updatePageParam(nextRoute);
     renderRoute();
+    closeMobileNav();
+});
+
+document.addEventListener("click", (event) => {
+    if (!navToggleEl?.checked) return;
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (navMenuEl?.contains(target)) return;
+    closeMobileNav();
 });
 
 renderRoute();

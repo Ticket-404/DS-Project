@@ -136,6 +136,7 @@ const sickRowTemplate = () => {
                             <span class="file-dropzone__meta">
                                 or click to browse (PDF or photo, max 10MB)
                             </span>
+                            <span class="file-dropzone__filename" data-file-name>No file selected</span>
                         </label>
                     </div>
                 </label>
@@ -188,6 +189,18 @@ export const onMount = async () => {
             target.closest("[data-sick-row]")?.remove();
             updateRowControls();
         }
+    });
+
+    rowsContainer.addEventListener("change", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.name !== "document") return;
+        const row = target.closest("[data-sick-row]");
+        if (!row) return;
+        const nameEl = row.querySelector("[data-file-name]");
+        if (!nameEl) return;
+        const fileName = target.files?.[0]?.name || "No file selected";
+        nameEl.textContent = fileName;
     });
 
     addRowButton.addEventListener("click", () => addRow());
