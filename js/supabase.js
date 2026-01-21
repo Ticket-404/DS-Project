@@ -1,6 +1,7 @@
 const SUPABASE_URL = "https://chwqgbhwtfgcvdtffsvv.supabase.co";
 const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNod3FnYmh3dGZnY3ZkdGZmc3Z2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjE1NzEsImV4cCI6MjA4NDQ5NzU3MX0.oPvqis-RrTEcTRI73A1YSjT1PbYAHovf5Y6xKUp4uaM";
+const SICK_DOCS_BUCKET = "sick day approval documents";
 
 let client = null;
 let loadPromise = null;
@@ -333,7 +334,7 @@ export const uploadSickDocument = async (file, employeeId) => {
     const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
     const path = `sick-docs/${employeeId}/${Date.now()}-${safeName}`;
 
-    const { error } = await client.storage.from("documents").upload(path, file, {
+    const { error } = await client.storage.from(SICK_DOCS_BUCKET).upload(path, file, {
         upsert: true,
     });
 
@@ -341,6 +342,6 @@ export const uploadSickDocument = async (file, employeeId) => {
         throw error;
     }
 
-    const { data } = client.storage.from("documents").getPublicUrl(path);
+    const { data } = client.storage.from(SICK_DOCS_BUCKET).getPublicUrl(path);
     return data?.publicUrl || null;
 };

@@ -96,7 +96,11 @@ const renderRows = (rows) =>
             <td>${row.days || "--"}</td>
             <td>${row.status || "pending"}</td>
             <td>${row.reason || "--"}</td>
-            <td>${row.document_url ? "Uploaded" : "--"}</td>
+            <td>${
+                row.document_url
+                    ? `<a href="${row.document_url}" target="_blank" rel="noopener">Open</a>`
+                    : "--"
+            }</td>
         </tr>`
               )
               .join("")
@@ -126,7 +130,6 @@ const sickRowTemplate = () => {
                             type="file"
                             accept="image/*,application/pdf"
                             class="file-input"
-                            required
                         />
                         <label for="${inputId}" class="file-dropzone">
                             <span class="file-dropzone__title">Drop your document here</span>
@@ -143,7 +146,7 @@ const sickRowTemplate = () => {
                 <textarea name="reason" rows="3" required></textarea>
             </label>
             <div class="vacations-row__actions">
-                <span class="vacations-form__meta">Document required.</span>
+                <span class="vacations-form__meta">Document optional.</span>
                 <button type="button" class="table-button" data-remove-sick-row>Remove</button>
             </div>
         </div>
@@ -257,17 +260,22 @@ export const onMount = async () => {
                 continue;
             }
 
-            if (!date || !days || !reason || !file) {
+            if (!date || !days || !reason) {
                 if (messageEl) messageEl.textContent = "Fill out all sick day fields.";
                 return;
             }
 
             let documentUrl = null;
-            try {
-                documentUrl = await uploadSickDocument(file, currentUser.id);
-            } catch (error) {
-                if (messageEl) messageEl.textContent = "Upload failed. Check storage bucket.";
-                return;
+            if (file) {
+                try {
+                    documentUrl = await uploadSickDocument(file, currentUser.id);
+                } catch (error) {
+                    if (messageEl) {
+                        const details = error?.message ? ` ${error.message}` : "";
+                        messageEl.textContent = `Upload failed.${details}`;
+                    }
+                    return;
+                }
             }
 
             payloads.push({
