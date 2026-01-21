@@ -1631,6 +1631,14 @@ html,body {
     color: var(--text)
 }
 
+.auth-panel .auth-form {
+    gap: .45rem
+}
+
+.auth-panel .form-field {
+    margin-bottom: .35rem
+}
+
 .auth-panel .form-field input,.auth-panel .form-field textarea,.auth-panel .form-field select {
     background: #070c1c99;
     border: 1px solid rgba(255,255,255,.12);
