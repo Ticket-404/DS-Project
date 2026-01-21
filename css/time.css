@@ -35,6 +35,12 @@ body {
     background: #050814
 }
 
+a,
+button,
+label {
+    -webkit-tap-highlight-color: transparent
+}
+
 body.is-login {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
