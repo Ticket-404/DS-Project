@@ -1,14 +1,40 @@
-import { render as renderProfile, title as titleProfile, onMount as onMountProfile } from "./pages/profile.js";
-import { render as renderSchedule, title as titleSchedule, onMount as onMountSchedule } from "./pages/schedule.js";
+import {
+    render as renderProfile,
+    title as titleProfile,
+    onMount as onMountProfile,
+    refresh as refreshProfile,
+} from "./pages/profile.js";
+import {
+    render as renderSchedule,
+    title as titleSchedule,
+    onMount as onMountSchedule,
+    refresh as refreshSchedule,
+} from "./pages/schedule.js";
 import {
     render as renderScheduleRequest,
     title as titleScheduleRequest,
     onMount as onMountScheduleRequest,
+    refresh as refreshScheduleRequest,
 } from "./pages/schedule-request.js";
-import { render as renderVacations, title as titleVacations, onMount as onMountVacations } from "./pages/vacations.js";
-import { render as renderSickDays, title as titleSickDays, onMount as onMountSickDays } from "./pages/sick-days.js";
+import {
+    render as renderVacations,
+    title as titleVacations,
+    onMount as onMountVacations,
+    refresh as refreshVacations,
+} from "./pages/vacations.js";
+import {
+    render as renderSickDays,
+    title as titleSickDays,
+    onMount as onMountSickDays,
+    refresh as refreshSickDays,
+} from "./pages/sick-days.js";
 import { render as renderLogin, title as titleLogin, onMount as onMountLogin } from "./pages/login.js";
-import { render as renderApprovals, title as titleApprovals, onMount as onMountApprovals } from "./pages/approvals.js";
+import {
+    render as renderApprovals,
+    title as titleApprovals,
+    onMount as onMountApprovals,
+    refresh as refreshApprovals,
+} from "./pages/approvals.js";
 import { clearCurrentUser, getCurrentUser } from "./supabase.js";
 
 const routes = {
@@ -16,36 +42,42 @@ const routes = {
         title: titleProfile,
         render: renderProfile,
         onMount: onMountProfile,
+        refresh: refreshProfile,
         requireAuth: true,
     },
     schedule: {
         title: titleSchedule,
         render: renderSchedule,
         onMount: onMountSchedule,
+        refresh: refreshSchedule,
         requireAuth: true,
     },
     "schedule-request": {
         title: titleScheduleRequest,
         render: renderScheduleRequest,
         onMount: onMountScheduleRequest,
+        refresh: refreshScheduleRequest,
         requireAuth: true,
     },
     vacations: {
         title: titleVacations,
         render: renderVacations,
         onMount: onMountVacations,
+        refresh: refreshVacations,
         requireAuth: true,
     },
     "sick-days": {
         title: titleSickDays,
         render: renderSickDays,
         onMount: onMountSickDays,
+        refresh: refreshSickDays,
         requireAuth: true,
     },
     approvals: {
         title: titleApprovals,
         render: renderApprovals,
         onMount: onMountApprovals,
+        refresh: refreshApprovals,
         requireAuth: true,
     },
     login: { title: titleLogin, render: renderLogin, onMount: onMountLogin, requireAuth: false },
@@ -102,7 +134,16 @@ const updatePageParam = (routeKey, replace = false) => {
     }
 };
 
-const setActiveNav = () => {};
+const setActiveNav = (routeKey) => {
+    if (!navEl) return;
+    const links = navEl.querySelectorAll(".app-shell__link");
+    links.forEach((link) => link.classList.remove("app-shell__link--active"));
+    if (!routeKey) return;
+    const activeLink = navEl.querySelector(`[data-route="${routeKey}"]`);
+    if (activeLink) {
+        activeLink.classList.add("app-shell__link--active");
+    }
+};
 
 const updateUserHeader = (routeKey) => {
     const currentUser = getCurrentUser();
@@ -180,6 +221,9 @@ const renderRoute = async () => {
             mainEl.classList.toggle("app-shell__main--wide", Boolean(route.wide));
             mainEl.classList.toggle("app-shell__main--login", isLogin);
         }
+        if (typeof route.refresh === "function") {
+            route.refresh();
+        }
         return;
     }
 
@@ -197,6 +241,9 @@ const renderRoute = async () => {
 
     if (typeof route.onMount === "function") {
         await route.onMount();
+    }
+    if (typeof route.refresh === "function") {
+        route.refresh();
     }
 
     routeCache.set(cacheKey, routeContainer);
