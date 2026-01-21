@@ -269,21 +269,26 @@ export const onMount = async () => {
     addRow();
 
     const loadVacations = async () => {
+        let cachedRows = null;
+        const cacheKey = `chronos-vacations:${currentUser.id}`;
+
         try {
-            const cacheKey = `chronos-vacations:${currentUser.id}`;
             const cached = sessionStorage.getItem(cacheKey);
             if (cached) {
-                const rows = JSON.parse(cached);
-                body.innerHTML = renderRows(rows);
-                const pending = rows.filter((row) => row.status === "pending");
-                const approved = rows.filter((row) => row.status === "approved");
+                cachedRows = JSON.parse(cached);
+                body.innerHTML = renderRows(cachedRows);
+                const pending = cachedRows.filter((row) => row.status === "pending");
+                const approved = cachedRows.filter((row) => row.status === "approved");
                 const pendingDays = pending.reduce((sum, row) => sum + Number(row.days || 0), 0);
                 const approvedDays = approved.reduce((sum, row) => sum + Number(row.days || 0), 0);
                 if (pendingEl) pendingEl.textContent = `${pendingDays} days`;
                 if (approvedEl) approvedEl.textContent = `${approvedDays} days`;
-                return;
             }
+        } catch (error) {
+            cachedRows = null;
+        }
 
+        try {
             const rows = await fetchVacations(currentUser.id);
             sessionStorage.setItem(cacheKey, JSON.stringify(rows));
             body.innerHTML = renderRows(rows);
@@ -294,7 +299,9 @@ export const onMount = async () => {
             if (pendingEl) pendingEl.textContent = `${pendingDays} days`;
             if (approvedEl) approvedEl.textContent = `${approvedDays} days`;
         } catch (error) {
-            body.innerHTML = `<tr><td colspan="6">Unable to load requests.</td></tr>`;
+            if (!cachedRows) {
+                body.innerHTML = `<tr><td colspan="6">Unable to load requests.</td></tr>`;
+            }
         }
     };
 
@@ -400,4 +407,27 @@ export const onMount = async () => {
             if (messageEl) messageEl.textContent = error?.message || "Unable to submit request.";
         }
     });
+};
+
+export const refresh = async () => {
+    const currentUser = getCurrentUser();
+    const body = document.querySelector("[data-vacation-body]");
+    const pendingEl = document.querySelector("[data-vacation-pending]");
+    const approvedEl = document.querySelector("[data-vacation-approved]");
+    if (!currentUser || !body) return;
+
+    try {
+        const cacheKey = `chronos-vacations:${currentUser.id}`;
+        const rows = await fetchVacations(currentUser.id);
+        sessionStorage.setItem(cacheKey, JSON.stringify(rows));
+        body.innerHTML = renderRows(rows);
+        const pending = rows.filter((row) => row.status === "pending");
+        const approved = rows.filter((row) => row.status === "approved");
+        const pendingDays = pending.reduce((sum, row) => sum + Number(row.days || 0), 0);
+        const approvedDays = approved.reduce((sum, row) => sum + Number(row.days || 0), 0);
+        if (pendingEl) pendingEl.textContent = `${pendingDays} days`;
+        if (approvedEl) approvedEl.textContent = `${approvedDays} days`;
+    } catch (error) {
+        // Ignore refresh errors.
+    }
 };

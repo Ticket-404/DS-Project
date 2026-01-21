@@ -191,24 +191,29 @@ export const onMount = async () => {
     addRow();
 
     const loadSickDays = async () => {
+        let cachedRows = null;
+        const cacheKey = `chronos-sick-days:${currentUser.id}`;
+
         try {
-            const cacheKey = `chronos-sick-days:${currentUser.id}`;
             const cached = sessionStorage.getItem(cacheKey);
             if (cached) {
-                const rows = JSON.parse(cached);
-                body.innerHTML = renderRows(rows);
-                const pending = rows.filter((row) => row.status === "pending");
-                const approved = rows.filter((row) => row.status === "approved");
-                const denied = rows.filter((row) => row.status === "denied");
+                cachedRows = JSON.parse(cached);
+                body.innerHTML = renderRows(cachedRows);
+                const pending = cachedRows.filter((row) => row.status === "pending");
+                const approved = cachedRows.filter((row) => row.status === "approved");
+                const denied = cachedRows.filter((row) => row.status === "denied");
                 const pendingDays = pending.reduce((sum, row) => sum + Number(row.days || 0), 0);
                 const approvedDays = approved.reduce((sum, row) => sum + Number(row.days || 0), 0);
                 const deniedDays = denied.reduce((sum, row) => sum + Number(row.days || 0), 0);
                 if (pendingEl) pendingEl.textContent = `${pendingDays} days`;
                 if (approvedEl) approvedEl.textContent = `${approvedDays} days`;
                 if (deniedEl) deniedEl.textContent = `${deniedDays} days`;
-                return;
             }
+        } catch (error) {
+            cachedRows = null;
+        }
 
+        try {
             const rows = await fetchSickDays(currentUser.id);
             sessionStorage.setItem(cacheKey, JSON.stringify(rows));
             body.innerHTML = renderRows(rows);
@@ -222,7 +227,9 @@ export const onMount = async () => {
             if (approvedEl) approvedEl.textContent = `${approvedDays} days`;
             if (deniedEl) deniedEl.textContent = `${deniedDays} days`;
         } catch (error) {
-            body.innerHTML = `<tr><td colspan="5">Unable to load requests.</td></tr>`;
+            if (!cachedRows) {
+                body.innerHTML = `<tr><td colspan="5">Unable to load requests.</td></tr>`;
+            }
         }
     };
 
@@ -288,4 +295,31 @@ export const onMount = async () => {
             if (messageEl) messageEl.textContent = error?.message || "Unable to submit request.";
         }
     });
+};
+
+export const refresh = async () => {
+    const currentUser = getCurrentUser();
+    const body = document.querySelector("[data-sick-body]");
+    const pendingEl = document.querySelector("[data-sick-pending]");
+    const approvedEl = document.querySelector("[data-sick-approved]");
+    const deniedEl = document.querySelector("[data-sick-denied]");
+    if (!currentUser || !body) return;
+
+    try {
+        const cacheKey = `chronos-sick-days:${currentUser.id}`;
+        const rows = await fetchSickDays(currentUser.id);
+        sessionStorage.setItem(cacheKey, JSON.stringify(rows));
+        body.innerHTML = renderRows(rows);
+        const pending = rows.filter((row) => row.status === "pending");
+        const approved = rows.filter((row) => row.status === "approved");
+        const denied = rows.filter((row) => row.status === "denied");
+        const pendingDays = pending.reduce((sum, row) => sum + Number(row.days || 0), 0);
+        const approvedDays = approved.reduce((sum, row) => sum + Number(row.days || 0), 0);
+        const deniedDays = denied.reduce((sum, row) => sum + Number(row.days || 0), 0);
+        if (pendingEl) pendingEl.textContent = `${pendingDays} days`;
+        if (approvedEl) approvedEl.textContent = `${approvedDays} days`;
+        if (deniedEl) deniedEl.textContent = `${deniedDays} days`;
+    } catch (error) {
+        // Ignore refresh errors.
+    }
 };

@@ -118,7 +118,7 @@ const mergeSchedules = (slots, approvals) => {
     const merged = [];
     const seen = new Set();
     const addRow = (row) => {
-        const key = `${row.calendar_day || ""}|${row.start_end_time || ""}|${row.mode || ""}`;
+        const key = `${row.employee_id || row.employee_email || ""}|${row.calendar_day || ""}|${row.start_end_time || ""}|${row.mode || ""}`;
         if (seen.has(key)) return;
         seen.add(key);
         merged.push(row);
@@ -129,6 +129,26 @@ const mergeSchedules = (slots, approvals) => {
 };
 
 const isTeamRole = (role) => role === "IT" || role === "Developer";
+
+const renderScheduleRows = (rows, showAll) =>
+    rows.length
+        ? rows
+              .map(
+                  (slot) => `
+                <tr>
+                    ${
+                        showAll
+                            ? `<td>${slot.employee_name || slot.employee_email || slot.employee_id || "--"}</td>`
+                            : ""
+                    }
+                    <td>${formatDay(slot.calendar_day)}</td>
+                    <td>${formatWeekday(slot.calendar_day)}</td>
+                    <td>${slot.start_end_time || "--"}</td>
+                    <td>${formatMode(slot.mode)}</td>
+                </tr>`
+              )
+              .join("")
+        : `<tr><td colspan="${showAll ? 5 : 4}">No schedule entries found.</td></tr>`;
 
 export const onMount = async () => {
     const currentUser = getCurrentUser();
@@ -226,30 +246,12 @@ export const onMount = async () => {
             const visibleRows = showAll
                 ? cachedRows.filter((row) => row.employee_id !== currentUser.id)
                 : cachedRows;
-            scheduleBody.innerHTML = visibleRows
-                ? visibleRows
-                      .map(
-                          (slot) => `
-                <tr>
-                    ${
-                        showAll
-                            ? `<td>${slot.employee_name || slot.employee_email || slot.employee_id || "--"}</td>`
-                            : ""
-                    }
-                    <td>${formatDay(slot.calendar_day)}</td>
-                    <td>${formatWeekday(slot.calendar_day)}</td>
-                    <td>${slot.start_end_time || "--"}</td>
-                    <td>${formatMode(slot.mode)}</td>
-                </tr>`
-                      )
-                      .join("")
-                : `<tr><td colspan="${showAll ? 5 : 4}">No schedule entries found.</td></tr>`;
+            scheduleBody.innerHTML = renderScheduleRows(visibleRows, showAll);
 
             if (weekRangeEl) {
                 const rangeSource = visibleRows.length ? visibleRows : cachedRows;
                 weekRangeEl.textContent = `Week: ${formatWeekRange(rangeSource)}`;
             }
-            return;
         }
 
         const [slots, approvals] = showAll
@@ -263,24 +265,7 @@ export const onMount = async () => {
         const visibleRows = showAll
             ? combined.filter((row) => row.employee_id !== currentUser.id)
             : combined;
-        scheduleBody.innerHTML = visibleRows.length
-            ? visibleRows
-                  .map(
-                      (slot) => `
-                <tr>
-                    ${
-                        showAll
-                            ? `<td>${slot.employee_name || slot.employee_email || slot.employee_id || "--"}</td>`
-                            : ""
-                    }
-                    <td>${formatDay(slot.calendar_day)}</td>
-                    <td>${formatWeekday(slot.calendar_day)}</td>
-                    <td>${slot.start_end_time || "--"}</td>
-                    <td>${formatMode(slot.mode)}</td>
-                </tr>`
-                  )
-                  .join("")
-            : `<tr><td colspan="${showAll ? 5 : 4}">No schedule entries found.</td></tr>`;
+        scheduleBody.innerHTML = renderScheduleRows(visibleRows, showAll);
 
         if (weekRangeEl) {
             const rangeSource = visibleRows.length ? visibleRows : combined;
@@ -317,5 +302,36 @@ export const onMount = async () => {
         if (unpaidEl) unpaidEl.textContent = `${usedByType.unpaid_vacation} used of 15`;
     } catch (error) {
         // Keep existing values if summary fails.
+    }
+};
+
+export const refresh = async () => {
+    const currentUser = getCurrentUser();
+    const scheduleBody = document.querySelector("[data-schedule-body]");
+    const weekRangeEl = document.querySelector("[data-week-range]");
+    if (!currentUser || !scheduleBody) return;
+
+    const showAll = currentUser.is_admin === true || isTeamRole(currentUser.role);
+    const cacheKey = `chronos-weekly-schedule:${currentUser.id}:${showAll ? "all" : "self"}`;
+
+    try {
+        const [slots, approvals] = showAll
+            ? await Promise.all([fetchAllScheduleSlots(), fetchAllApprovedScheduleRequests()])
+            : await Promise.all([
+                  fetchScheduleSlots(currentUser.id),
+                  fetchApprovedScheduleRequests(currentUser.id),
+              ]);
+        const combined = mergeSchedules(slots, approvals);
+        sessionStorage.setItem(cacheKey, JSON.stringify(combined));
+        const visibleRows = showAll
+            ? combined.filter((row) => row.employee_id !== currentUser.id)
+            : combined;
+        scheduleBody.innerHTML = renderScheduleRows(visibleRows, showAll);
+        if (weekRangeEl) {
+            const rangeSource = visibleRows.length ? visibleRows : combined;
+            weekRangeEl.textContent = `Week: ${formatWeekRange(rangeSource)}`;
+        }
+    } catch (error) {
+        // Ignore refresh errors.
     }
 };

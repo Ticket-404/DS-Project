@@ -175,6 +175,13 @@ const renderRows = (rows) =>
               .join("")
         : `<tr><td colspan="6">No requests found.</td></tr>`;
 
+const fetchAndRenderRequests = async (currentUser, body) => {
+    const cacheKey = `chronos-schedule-requests:${currentUser.id}`;
+    const rows = await fetchScheduleRequests(currentUser.id);
+    sessionStorage.setItem(cacheKey, JSON.stringify(rows));
+    body.innerHTML = renderRows(rows);
+};
+
 export const onMount = async () => {
     const currentUser = getCurrentUser();
     const form = document.querySelector("[data-schedule-form]");
@@ -219,21 +226,44 @@ export const onMount = async () => {
     addRowButton.addEventListener("click", () => addRow());
     addRow();
 
-    const loadRequests = async () => {
-        try {
-            const cacheKey = `chronos-schedule-requests:${currentUser.id}`;
-            const cached = sessionStorage.getItem(cacheKey);
-            if (cached) {
-                const rows = JSON.parse(cached);
-                body.innerHTML = renderRows(rows);
-                return;
-            }
+    const cacheKey = `chronos-schedule-requests:${currentUser.id}`;
 
-            const rows = await fetchScheduleRequests(currentUser.id);
-            sessionStorage.setItem(cacheKey, JSON.stringify(rows));
-            body.innerHTML = renderRows(rows);
+    const mergeRows = (existing, next) => {
+        const seen = new Set();
+        const merged = [];
+        const addRow = (row) => {
+            const key = row?.id || `${row?.week_of}|${row?.calendar_day}|${row?.start_end_time}|${row?.mode}`;
+            if (seen.has(key)) return;
+            seen.add(key);
+            merged.push(row);
+        };
+        next.forEach(addRow);
+        existing.forEach(addRow);
+        return merged;
+    };
+
+    const stripPendingRows = (rows) => rows.filter((row) => !String(row?.id || "").startsWith("pending-"));
+
+    const loadRequests = async (forceRefresh = false) => {
+        let cachedRows = null;
+        if (!forceRefresh) {
+            try {
+                const cached = sessionStorage.getItem(cacheKey);
+                if (cached) {
+                    cachedRows = JSON.parse(cached);
+                    body.innerHTML = renderRows(cachedRows);
+                }
+            } catch (error) {
+                cachedRows = null;
+            }
+        }
+
+        try {
+            await fetchAndRenderRequests(currentUser, body);
         } catch (error) {
-            body.innerHTML = `<tr><td colspan="6">Unable to load requests.</td></tr>`;
+            if (!cachedRows) {
+                body.innerHTML = `<tr><td colspan="6">Unable to load requests.</td></tr>`;
+            }
         }
     };
 
@@ -294,13 +324,53 @@ export const onMount = async () => {
         }
 
         try {
-            await createScheduleRequest(payloads);
+            const optimisticRows = payloads.map((row, index) => ({
+                ...row,
+                id: `pending-${Date.now()}-${index}`,
+            }));
+            const existingRows = (() => {
+                try {
+                    const cached = sessionStorage.getItem(cacheKey);
+                    return cached ? JSON.parse(cached) : [];
+                } catch (error) {
+                    return [];
+                }
+            })();
+            const mergedPending = mergeRows(existingRows, optimisticRows);
+            sessionStorage.setItem(cacheKey, JSON.stringify(mergedPending));
+            body.innerHTML = renderRows(mergedPending);
+
+            const created = await createScheduleRequest(payloads);
             form.reset();
             rowsBody.innerHTML = "";
             addRow();
-            await loadRequests();
+            const createdRows = Array.isArray(created) && created.length ? created : payloads;
+            const latestRows = (() => {
+                try {
+                    const cached = sessionStorage.getItem(cacheKey);
+                    return cached ? JSON.parse(cached) : [];
+                } catch (error) {
+                    return [];
+                }
+            })();
+            const merged = mergeRows(stripPendingRows(latestRows), createdRows);
+            sessionStorage.setItem(cacheKey, JSON.stringify(merged));
+            body.innerHTML = renderRows(merged);
+            sessionStorage.removeItem("chronos-approvals");
         } catch (error) {
+            await loadRequests(true);
             if (messageEl) messageEl.textContent = error?.message || "Unable to submit schedule.";
         }
     });
+};
+
+export const refresh = async () => {
+    const currentUser = getCurrentUser();
+    const body = document.querySelector("[data-requests-body]");
+    if (!currentUser || !body) return;
+    try {
+        await fetchAndRenderRequests(currentUser, body);
+    } catch (error) {
+        // Ignore refresh errors.
+    }
 };

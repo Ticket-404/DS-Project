@@ -138,19 +138,22 @@ export const onMount = async () => {
 
     if (!scheduleBody || !vacationBody || !sickBody) return;
 
-    const loadAll = async () => {
-        try {
-            const cacheKey = "chronos-approvals";
-            const cached = sessionStorage.getItem(cacheKey);
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                const scheduleRows = parsed.schedule || [];
-                const vacationRows = parsed.vacations || [];
-                const sickRows = parsed.sick || [];
-                scheduleBody.innerHTML = scheduleRows.length
-                    ? scheduleRows
-                          .map(
-                              (row) => `
+    const loadAll = async (forceRefresh = false) => {
+        let cachedRows = null;
+        const cacheKey = "chronos-approvals";
+
+        if (!forceRefresh) {
+            try {
+                const cached = sessionStorage.getItem(cacheKey);
+                if (cached) {
+                    cachedRows = JSON.parse(cached);
+                    const scheduleRows = cachedRows.schedule || [];
+                    const vacationRows = cachedRows.vacations || [];
+                    const sickRows = cachedRows.sick || [];
+                    scheduleBody.innerHTML = scheduleRows.length
+                        ? scheduleRows
+                              .map(
+                                  (row) => `
                     <tr>
                         <td>${renderEmployee(row)}</td>
                         <td>${row.week_of || "--"}</td>
@@ -160,14 +163,14 @@ export const onMount = async () => {
                         <td>${renderStatusPill(row.status)}</td>
                         <td>${actionButtons("schedule", row.id, row.status)}</td>
                     </tr>`
-                          )
-                          .join("")
-                    : `<tr><td colspan="7">No schedule requests.</td></tr>`;
+                              )
+                              .join("")
+                        : `<tr><td colspan="7">No schedule requests.</td></tr>`;
 
-                vacationBody.innerHTML = vacationRows.length
-                    ? vacationRows
-                          .map(
-                              (row) => `
+                    vacationBody.innerHTML = vacationRows.length
+                        ? vacationRows
+                              .map(
+                                  (row) => `
                     <tr>
                         <td>${renderEmployee(row)}</td>
                         <td>${row.date || "--"}</td>
@@ -177,14 +180,14 @@ export const onMount = async () => {
                         <td>${renderStatusPill(row.status)}</td>
                         <td>${actionButtons("vacation", row.id, row.status)}</td>
                     </tr>`
-                          )
-                          .join("")
-                    : `<tr><td colspan="7">No vacation requests.</td></tr>`;
+                              )
+                              .join("")
+                        : `<tr><td colspan="7">No vacation requests.</td></tr>`;
 
-                sickBody.innerHTML = sickRows.length
-                    ? sickRows
-                          .map(
-                              (row) => `
+                    sickBody.innerHTML = sickRows.length
+                        ? sickRows
+                              .map(
+                                  (row) => `
                     <tr>
                         <td>${renderEmployee(row)}</td>
                         <td>${row.date || "--"}</td>
@@ -194,12 +197,16 @@ export const onMount = async () => {
                         <td>${renderStatusPill(row.status)}</td>
                         <td>${actionButtons("sick", row.id, row.status)}</td>
                     </tr>`
-                          )
-                          .join("")
-                    : `<tr><td colspan="7">No sick-day requests.</td></tr>`;
-                return;
+                              )
+                              .join("")
+                        : `<tr><td colspan="7">No sick-day requests.</td></tr>`;
+                }
+            } catch (error) {
+                cachedRows = null;
             }
+        }
 
+        try {
             const [scheduleRows, vacationRows, sickRows] = await Promise.all([
                 fetchAllScheduleRequests(),
                 fetchAllVacations(),
@@ -261,20 +268,23 @@ export const onMount = async () => {
                       .join("")
                 : `<tr><td colspan="7">No sick-day requests.</td></tr>`;
         } catch (error) {
-            scheduleBody.innerHTML = `<tr><td colspan="7">Unable to load schedule requests.</td></tr>`;
-            vacationBody.innerHTML = `<tr><td colspan="7">Unable to load vacation requests.</td></tr>`;
-            sickBody.innerHTML = `<tr><td colspan="7">Unable to load sick-day requests.</td></tr>`;
+            if (!cachedRows) {
+                scheduleBody.innerHTML = `<tr><td colspan="7">Unable to load schedule requests.</td></tr>`;
+                vacationBody.innerHTML = `<tr><td colspan="7">Unable to load vacation requests.</td></tr>`;
+                sickBody.innerHTML = `<tr><td colspan="7">Unable to load sick-day requests.</td></tr>`;
+            }
         }
     };
 
     const handleAction = async (event) => {
         const target = event.target;
         if (!(target instanceof HTMLElement)) return;
-        if (!target.matches("[data-action]")) return;
+        const button = target.closest("[data-action]");
+        if (!(button instanceof HTMLElement)) return;
 
-        const action = target.dataset.action;
-        const type = target.dataset.type;
-        const id = target.dataset.id;
+        const action = button.dataset.action;
+        const type = button.dataset.type;
+        const id = button.dataset.id;
         if (!action || !type || !id) return;
 
         const status = action === "approve" ? "approved" : "denied";
@@ -301,7 +311,8 @@ export const onMount = async () => {
             } else if (type === "sick") {
                 await updateSickDayStatus(id, status);
             }
-            await loadAll();
+            sessionStorage.removeItem("chronos-approvals");
+            await loadAll(true);
         } catch (error) {
             console.error("Approval failed", error);
         }
@@ -312,4 +323,77 @@ export const onMount = async () => {
     sickBody.addEventListener("click", handleAction);
 
     await loadAll();
+};
+
+export const refresh = async () => {
+    const scheduleBody = document.querySelector("[data-approval-schedule]");
+    const vacationBody = document.querySelector("[data-approval-vacations]");
+    const sickBody = document.querySelector("[data-approval-sick]");
+
+    if (!scheduleBody || !vacationBody || !sickBody) return;
+
+    try {
+        const [scheduleRows, vacationRows, sickRows] = await Promise.all([
+            fetchAllScheduleRequests(),
+            fetchAllVacations(),
+            fetchAllSickDays(),
+        ]);
+        sessionStorage.setItem(
+            "chronos-approvals",
+            JSON.stringify({ schedule: scheduleRows, vacations: vacationRows, sick: sickRows })
+        );
+
+        scheduleBody.innerHTML = scheduleRows.length
+            ? scheduleRows
+                  .map(
+                      (row) => `
+                <tr>
+                    <td>${renderEmployee(row)}</td>
+                    <td>${row.week_of || "--"}</td>
+                    <td>${row.calendar_day || "--"}</td>
+                    <td>${row.start_end_time || "--"}</td>
+                    <td>${renderMode(row.mode)}</td>
+                    <td>${renderStatusPill(row.status)}</td>
+                    <td>${actionButtons("schedule", row.id, row.status)}</td>
+                </tr>`
+                  )
+                  .join("")
+            : `<tr><td colspan="7">No schedule requests.</td></tr>`;
+
+        vacationBody.innerHTML = vacationRows.length
+            ? vacationRows
+                  .map(
+                      (row) => `
+                <tr>
+                    <td>${renderEmployee(row)}</td>
+                    <td>${row.date || "--"}</td>
+                    <td>${row.category || "--"}</td>
+                    <td>${row.days || "--"}</td>
+                    <td>${row.reason || "--"}</td>
+                    <td>${renderStatusPill(row.status)}</td>
+                    <td>${actionButtons("vacation", row.id, row.status)}</td>
+                </tr>`
+                  )
+                  .join("")
+            : `<tr><td colspan="7">No vacation requests.</td></tr>`;
+
+        sickBody.innerHTML = sickRows.length
+            ? sickRows
+                  .map(
+                      (row) => `
+                <tr>
+                    <td>${renderEmployee(row)}</td>
+                    <td>${row.date || "--"}</td>
+                    <td>${row.days || "--"}</td>
+                    <td>${row.reason || "--"}</td>
+                    <td>${row.document_url ? "Uploaded" : "--"}</td>
+                    <td>${renderStatusPill(row.status)}</td>
+                    <td>${actionButtons("sick", row.id, row.status)}</td>
+                </tr>`
+                  )
+                  .join("")
+            : `<tr><td colspan="7">No sick-day requests.</td></tr>`;
+    } catch (error) {
+        // Ignore refresh errors.
+    }
 };

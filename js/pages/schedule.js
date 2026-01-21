@@ -67,6 +67,32 @@ const mergeSchedules = (slots, approvals) => {
     return merged;
 };
 
+const renderScheduleRows = (rows) =>
+    rows.length
+        ? rows
+              .map(
+                  (slot) => `
+            <tr>
+                <td>${formatDay(slot.calendar_day)}</td>
+                <td>${formatWeekday(slot.calendar_day)}</td>
+                <td>${slot.start_end_time || "--"}</td>
+                <td>${formatMode(slot.mode)}</td>
+            </tr>`
+              )
+              .join("")
+        : `<tr><td colspan="4">No schedule entries found.</td></tr>`;
+
+const fetchAndRenderSchedule = async (currentUser, scheduleBody) => {
+    const cacheKey = `chronos-schedule:${currentUser.id}`;
+    const [slots, approvals] = await Promise.all([
+        fetchScheduleSlots(currentUser.id),
+        fetchApprovedScheduleRequests(currentUser.id),
+    ]);
+    const combined = mergeSchedules(slots, approvals);
+    sessionStorage.setItem(cacheKey, JSON.stringify(combined));
+    scheduleBody.innerHTML = renderScheduleRows(combined);
+};
+
 export const onMount = async () => {
     const currentUser = getCurrentUser();
     const scheduleBody = document.querySelector("[data-schedule-body]");
@@ -77,42 +103,22 @@ export const onMount = async () => {
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
             const rows = JSON.parse(cached);
-            scheduleBody.innerHTML = rows.length
-                ? rows
-                      .map(
-                          (slot) => `
-            <tr>
-                <td>${formatDay(slot.calendar_day)}</td>
-                <td>${formatWeekday(slot.calendar_day)}</td>
-                <td>${slot.start_end_time || "--"}</td>
-                <td>${formatMode(slot.mode)}</td>
-            </tr>`
-                      )
-                      .join("")
-                : `<tr><td colspan="4">No schedule entries found.</td></tr>`;
-            return;
+            scheduleBody.innerHTML = renderScheduleRows(rows);
         }
 
-        const [slots, approvals] = await Promise.all([
-            fetchScheduleSlots(currentUser.id),
-            fetchApprovedScheduleRequests(currentUser.id),
-        ]);
-        const combined = mergeSchedules(slots, approvals);
-        sessionStorage.setItem(cacheKey, JSON.stringify(combined));
-        scheduleBody.innerHTML = combined.length
-            ? combined
-                  .map(
-                      (slot) => `
-            <tr>
-                <td>${formatDay(slot.calendar_day)}</td>
-                <td>${formatWeekday(slot.calendar_day)}</td>
-                <td>${slot.start_end_time || "--"}</td>
-                <td>${formatMode(slot.mode)}</td>
-            </tr>`
-                  )
-                  .join("")
-            : `<tr><td colspan="4">No schedule entries found.</td></tr>`;
+        await fetchAndRenderSchedule(currentUser, scheduleBody);
     } catch (error) {
         scheduleBody.innerHTML = `<tr><td colspan="4">Unable to load schedule.</td></tr>`;
+    }
+};
+
+export const refresh = async () => {
+    const currentUser = getCurrentUser();
+    const scheduleBody = document.querySelector("[data-schedule-body]");
+    if (!currentUser || !scheduleBody) return;
+    try {
+        await fetchAndRenderSchedule(currentUser, scheduleBody);
+    } catch (error) {
+        // Ignore refresh errors.
     }
 };

@@ -5,32 +5,49 @@ import {
     title as titleScheduleRequest,
     onMount as onMountScheduleRequest,
 } from "./pages/schedule-request.js";
-import {
-    render as renderVacations,
-    title as titleVacations,
-    onMount as onMountVacations,
-} from "./pages/vacations.js";
-import {
-    render as renderSickDays,
-    title as titleSickDays,
-    onMount as onMountSickDays,
-} from "./pages/sick-days.js";
+import { render as renderVacations, title as titleVacations, onMount as onMountVacations } from "./pages/vacations.js";
+import { render as renderSickDays, title as titleSickDays, onMount as onMountSickDays } from "./pages/sick-days.js";
 import { render as renderLogin, title as titleLogin, onMount as onMountLogin } from "./pages/login.js";
 import { render as renderApprovals, title as titleApprovals, onMount as onMountApprovals } from "./pages/approvals.js";
 import { clearCurrentUser, getCurrentUser } from "./supabase.js";
 
 const routes = {
-    profile: { title: titleProfile, render: renderProfile, onMount: onMountProfile, requireAuth: true },
-    schedule: { title: titleSchedule, render: renderSchedule, onMount: onMountSchedule, requireAuth: true },
+    profile: {
+        title: titleProfile,
+        render: renderProfile,
+        onMount: onMountProfile,
+        requireAuth: true,
+    },
+    schedule: {
+        title: titleSchedule,
+        render: renderSchedule,
+        onMount: onMountSchedule,
+        requireAuth: true,
+    },
     "schedule-request": {
         title: titleScheduleRequest,
         render: renderScheduleRequest,
         onMount: onMountScheduleRequest,
         requireAuth: true,
     },
-    vacations: { title: titleVacations, render: renderVacations, onMount: onMountVacations, requireAuth: true },
-    "sick-days": { title: titleSickDays, render: renderSickDays, onMount: onMountSickDays, requireAuth: true },
-    approvals: { title: titleApprovals, render: renderApprovals, onMount: onMountApprovals, requireAuth: true },
+    vacations: {
+        title: titleVacations,
+        render: renderVacations,
+        onMount: onMountVacations,
+        requireAuth: true,
+    },
+    "sick-days": {
+        title: titleSickDays,
+        render: renderSickDays,
+        onMount: onMountSickDays,
+        requireAuth: true,
+    },
+    approvals: {
+        title: titleApprovals,
+        render: renderApprovals,
+        onMount: onMountApprovals,
+        requireAuth: true,
+    },
     login: { title: titleLogin, render: renderLogin, onMount: onMountLogin, requireAuth: false },
 };
 
