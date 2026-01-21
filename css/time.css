@@ -17,12 +17,23 @@
     font-family: Inter,Space Grotesk,system-ui,sans-serif
 }
 
-html,body {
+html {
     width: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
-    scrollbar-gutter: stable;
     background: #050814
+}
+
+body {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
+    background: #050814
+}
+
+body.is-login {
+    overflow-y: auto;
+    scrollbar-gutter: auto
 }
 
 .app-shell {
