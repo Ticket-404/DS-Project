@@ -77,6 +77,11 @@ const formatDay = (isoDate) => {
     return date.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
 };
 
+const formatMode = (mode) => {
+    if (!mode) return "--";
+    return String(mode).replace(/_/g, " ");
+};
+
 const getWeekStartMonday = () => {
     const now = new Date();
     const day = now.getDay();
@@ -163,7 +168,7 @@ const renderRows = (rows) =>
             <td>${formatDay(row.calendar_day)}</td>
             <td>${row.day_of_week || "--"}</td>
             <td>${row.start_end_time || "--"}</td>
-            <td>${row.mode || "--"}</td>
+            <td>${formatMode(row.mode)}</td>
             <td>${renderStatusPill(row.status)}</td>
         </tr>`
               )

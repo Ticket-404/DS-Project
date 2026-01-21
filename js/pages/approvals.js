@@ -107,6 +107,10 @@ const renderStatusPill = (status) => {
 };
 const renderEmployee = (row) =>
     row?.employee_name || row?.employee_email || row?.employee_id || "--";
+const renderMode = (mode) => {
+    if (!mode) return "--";
+    return String(mode).replace(/_/g, " ");
+};
 
 const actionButtons = (type, id, status) => {
     if (status === "approved") {
@@ -152,7 +156,7 @@ export const onMount = async () => {
                         <td>${row.week_of || "--"}</td>
                         <td>${row.calendar_day || "--"}</td>
                         <td>${row.start_end_time || "--"}</td>
-                        <td>${row.mode || "--"}</td>
+                        <td>${renderMode(row.mode)}</td>
                         <td>${renderStatusPill(row.status)}</td>
                         <td>${actionButtons("schedule", row.id, row.status)}</td>
                     </tr>`
@@ -215,7 +219,7 @@ export const onMount = async () => {
                         <td>${row.week_of || "--"}</td>
                         <td>${row.calendar_day || "--"}</td>
                         <td>${row.start_end_time || "--"}</td>
-                        <td>${row.mode || "--"}</td>
+                        <td>${renderMode(row.mode)}</td>
                         <td>${renderStatusPill(row.status)}</td>
                         <td>${actionButtons("schedule", row.id, row.status)}</td>
                     </tr>`

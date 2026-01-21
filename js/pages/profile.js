@@ -100,6 +100,10 @@ const formatWeekday = (isoDate) => {
     const date = new Date(isoDate);
     return date.toLocaleDateString(undefined, { weekday: "long" });
 };
+const formatMode = (mode) => {
+    if (!mode) return "--";
+    return String(mode).replace(/_/g, " ");
+};
 const formatWeekRange = (slots) => {
     if (!slots.length) return "--";
     const dates = slots.map((slot) => slot.calendar_day).filter(Boolean);
@@ -235,7 +239,7 @@ export const onMount = async () => {
                     <td>${formatDay(slot.calendar_day)}</td>
                     <td>${formatWeekday(slot.calendar_day)}</td>
                     <td>${slot.start_end_time || "--"}</td>
-                    <td>${slot.mode || "--"}</td>
+                    <td>${formatMode(slot.mode)}</td>
                 </tr>`
                       )
                       .join("")
@@ -272,7 +276,7 @@ export const onMount = async () => {
                     <td>${formatDay(slot.calendar_day)}</td>
                     <td>${formatWeekday(slot.calendar_day)}</td>
                     <td>${slot.start_end_time || "--"}</td>
-                    <td>${slot.mode || "--"}</td>
+                    <td>${formatMode(slot.mode)}</td>
                 </tr>`
                   )
                   .join("")

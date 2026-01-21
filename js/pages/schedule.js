@@ -49,6 +49,10 @@ const formatWeekday = (isoDate) => {
     const date = new Date(isoDate);
     return date.toLocaleDateString(undefined, { weekday: "long" });
 };
+const formatMode = (mode) => {
+    if (!mode) return "--";
+    return String(mode).replace(/_/g, " ");
+};
 const mergeSchedules = (slots, approvals) => {
     const merged = [];
     const seen = new Set();
@@ -81,7 +85,7 @@ export const onMount = async () => {
                 <td>${formatDay(slot.calendar_day)}</td>
                 <td>${formatWeekday(slot.calendar_day)}</td>
                 <td>${slot.start_end_time || "--"}</td>
-                <td>${slot.mode || "--"}</td>
+                <td>${formatMode(slot.mode)}</td>
             </tr>`
                       )
                       .join("")
@@ -103,7 +107,7 @@ export const onMount = async () => {
                 <td>${formatDay(slot.calendar_day)}</td>
                 <td>${formatWeekday(slot.calendar_day)}</td>
                 <td>${slot.start_end_time || "--"}</td>
-                <td>${slot.mode || "--"}</td>
+                <td>${formatMode(slot.mode)}</td>
             </tr>`
                   )
                   .join("")
