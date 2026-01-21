@@ -1,3 +1,4 @@
+
 import { fetchApprovedScheduleRequests, fetchScheduleSlots, getCurrentUser } from "../supabase.js";
 
 export const title = "Chronos | My schedule";
@@ -111,4 +112,3 @@ export const onMount = async () => {
         scheduleBody.innerHTML = `<tr><td colspan="4">Unable to load schedule.</td></tr>`;
     }
 };
-

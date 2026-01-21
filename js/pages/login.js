@@ -54,11 +54,7 @@ export const onMount = () => {
     const showMessage = (el, message) => {
         if (!el) return;
         el.textContent = message || "";
-        if (message) {
-            el.removeAttribute("hidden");
-        } else {
-            el.setAttribute("hidden", "");
-        }
+        el.classList.toggle("is-empty", !message);
     };
 
     const ensureErrorEl = (form, fieldName) => {
@@ -70,7 +66,7 @@ export const onMount = () => {
         let errorEl = fieldLabel.nextElementSibling;
         if (!errorEl || !errorEl.classList.contains("form-error")) {
             errorEl = document.createElement("p");
-            errorEl.className = "form-error";
+            errorEl.className = "form-error is-empty";
             fieldLabel.insertAdjacentElement("afterend", errorEl);
         }
         return errorEl;
@@ -78,13 +74,22 @@ export const onMount = () => {
 
     const clearError = (form, fieldName) => {
         const errorEl = ensureErrorEl(form, fieldName);
-        if (errorEl) errorEl.textContent = "";
+        if (errorEl) {
+            errorEl.textContent = "";
+            errorEl.classList.add("is-empty");
+        }
     };
 
     const setError = (form, fieldName, message) => {
         const errorEl = ensureErrorEl(form, fieldName);
-        if (errorEl) errorEl.textContent = message;
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.classList.remove("is-empty");
+        }
     };
+
+    showMessage(messageEl, "");
+    showMessage(magicMessageEl, "");
 
     if (magicForm) {
         magicForm.addEventListener("submit", (event) => {
@@ -140,4 +145,3 @@ export const onMount = () => {
 if (document.querySelector("[data-login-form]")) {
     onMount();
 }
-

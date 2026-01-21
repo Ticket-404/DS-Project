@@ -104,7 +104,7 @@ const updateUserHeader = (routeKey) => {
     }
 
     if (navWrapEl) {
-        const shouldShowNav = routeKey === "login" ? true : Boolean(currentUser);
+        const shouldShowNav = routeKey !== "login" && Boolean(currentUser);
         navWrapEl.classList.toggle("is-hidden", !shouldShowNav);
     }
 
@@ -118,61 +118,63 @@ const updateUserHeader = (routeKey) => {
 const renderRoute = async () => {
     if (!contentEl) return;
 
-    const routeKey = normalizeRoute();
-    const safeKey = routes[routeKey] ? routeKey : "profile";
-    const route = routes[safeKey];
+    const currentUser = getCurrentUser();
+    let routeKey = normalizeRoute();
+    if (!routes[routeKey]) {
+        routeKey = "profile";
+    }
+    if (routes[routeKey].requireAuth && !currentUser) {
+        routeKey = "login";
+        updatePageParam("login", true);
+    }
+    if (routeKey === "approvals" && currentUser?.is_admin !== true && currentUser?.role !== "admin") {
+        routeKey = "profile";
+        updatePageParam("profile", true);
+    }
+    const route = routes[routeKey];
+    const isLogin = routeKey === "login";
 
-    applyLoginVisibility(safeKey);
+    applyLoginVisibility(routeKey);
 
     if (!new URLSearchParams(window.location.search).get("page")) {
-        updatePageParam(safeKey, true);
+        updatePageParam(routeKey, true);
     }
 
-    const currentUser = getCurrentUser();
+    document.title = route.title;
+    if (navEl) {
+        navEl.innerHTML = isLogin ? loginNavMarkup : defaultNavMarkup;
+    }
+    document.body.classList.toggle("is-login", isLogin);
+
     const currentUserId = currentUser?.id || "anon";
     if (cachedUserId !== currentUserId) {
         routeCache.clear();
         cachedUserId = currentUserId;
     }
-    if (route.requireAuth && !currentUser) {
-        updatePageParam("login", true);
-        return;
-    }
 
-    if (safeKey === "approvals" && currentUser?.is_admin !== true && currentUser?.role !== "admin") {
-        updatePageParam("profile", true);
-        return;
-    }
-
-    document.title = route.title;
-    if (navEl) {
-        navEl.innerHTML = safeKey === "login" ? loginNavMarkup : defaultNavMarkup;
-    }
-    document.body.classList.toggle("is-login", false);
-
-    const cacheKey = `${currentUserId}:${safeKey}`;
+    const cacheKey = `${currentUserId}:${routeKey}`;
     if (routeCache.has(cacheKey)) {
         contentEl.replaceChildren(routeCache.get(cacheKey));
-        setActiveNav(safeKey);
-        updateUserHeader(safeKey);
+        setActiveNav(routeKey);
+        updateUserHeader(routeKey);
 
         if (mainEl) {
             mainEl.classList.toggle("app-shell__main--wide", Boolean(route.wide));
-            mainEl.classList.toggle("app-shell__main--login", false);
+            mainEl.classList.toggle("app-shell__main--login", isLogin);
         }
         return;
     }
 
     const routeContainer = document.createElement("div");
-    routeContainer.dataset.route = safeKey;
+    routeContainer.dataset.route = routeKey;
     routeContainer.innerHTML = route.render();
     contentEl.replaceChildren(routeContainer);
-    setActiveNav(safeKey);
-    updateUserHeader(safeKey);
+    setActiveNav(routeKey);
+    updateUserHeader(routeKey);
 
     if (mainEl) {
         mainEl.classList.toggle("app-shell__main--wide", Boolean(route.wide));
-        mainEl.classList.toggle("app-shell__main--login", false);
+        mainEl.classList.toggle("app-shell__main--login", isLogin);
     }
 
     if (typeof route.onMount === "function") {
@@ -208,6 +210,11 @@ document.addEventListener("click", (event) => {
     event.preventDefault();
     const params = new URLSearchParams(href.replace(/^\?/, ""));
     const nextRoute = params.get("page") || "profile";
+    if (nextRoute === "login" && getCurrentUser()) {
+        clearCurrentUser();
+        routeCache.clear();
+        cachedUserId = null;
+    }
     updatePageParam(nextRoute);
     renderRoute();
 });

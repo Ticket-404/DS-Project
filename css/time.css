@@ -1448,6 +1448,14 @@ html,body {
     margin-top: .25rem
 }
 
+.login-grid .form-error {
+    min-height: 1.1em
+}
+
+.login-grid .form-error.is-empty {
+    visibility: hidden
+}
+
 .form-success {
     color: #54f5a6;
     font-size: .85rem;
@@ -1686,137 +1694,6 @@ html,body {
 
     .hero-panel,.auth-panel,.login-card {
         padding: 1.5rem
-    }
-}
-
-body.is-login {
-    background: #060915;
-    position: relative
-}
-
-body.is-login::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background:
-        radial-gradient(circle at 20% 30%, rgba(35, 128, 130, 0.35), transparent 45%),
-        radial-gradient(circle at 75% 20%, rgba(108, 82, 175, 0.4), transparent 48%),
-        radial-gradient(circle at 50% 70%, rgba(9, 12, 24, 0.4), transparent 55%),
-        linear-gradient(180deg, rgba(4, 6, 14, 0.9), rgba(6, 9, 21, 0.98));
-    opacity: .9;
-    pointer-events: none;
-    z-index: 0
-}
-
-body.is-login .app-shell {
-    background: transparent;
-    position: relative;
-    z-index: 1
-}
-
-body.is-login .app-shell__header {
-    height: 72px;
-    padding: 0 2rem;
-    background: linear-gradient(90deg, rgba(10,14,24,0.7), rgba(20,24,40,0.6));
-    border-bottom: 1px solid rgba(255,255,255,.06)
-}
-
-body.is-login .app-shell__nav {
-    gap: 1.25rem
-}
-
-body.is-login .app-shell__user {
-    display: none
-}
-
-body.is-login .app-shell__link {
-    padding: .45rem .9rem;
-    border-radius: 12px
-}
-
-.glass {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,.08)
-}
-
-body.is-login .form-card.login-grid {
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
-    max-width: 1180px;
-    margin: 3.5rem auto 2.5rem;
-    display: grid;
-    grid-template-columns: minmax(420px, 1fr) minmax(470px, 1.1fr);
-    gap: 32px;
-    align-items: stretch
-}
-
-body.is-login .hero-panel,
-body.is-login .auth-panel {
-    padding: 32px;
-    min-height: 585px
-}
-
-body.is-login .hero-panel h1 {
-    font-size: 2.7rem
-}
-
-body.is-login .hero-panel .hero-copy {
-    font-size: 1rem;
-    line-height: 1.7
-}
-
-body.is-login .hero-list {
-    margin-top: 1.5rem;
-    gap: .85rem
-}
-
-body.is-login .auth-panel .form-field input {
-    background: #e8efff;
-    color: #11182a;
-    border: none;
-    border-radius: 12px;
-    min-height: 44px;
-    box-shadow: 0 10px 24px rgba(0,0,0,.3)
-}
-
-body.is-login .auth-panel .form-field input::placeholder {
-    color: #6c7aa5
-}
-
-body.is-login .auth-panel .primary-button {
-    width: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #6f56ff, #7b63ff);
-    box-shadow: 0 12px 30px rgba(62, 53, 141, 0.45)
-}
-
-body.is-login .auth-panel .secondary-button {
-    width: 100%;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.2);
-    background: transparent;
-    color: #e5e9ff
-}
-
-body.is-login .auth-panel .magic-link-panel {
-    border-top: 1px solid rgba(255,255,255,.1);
-    padding-top: 1.25rem
-}
-
-@media(max-width: 900px) {
-    body.is-login .form-card.login-grid {
-        grid-template-columns: 1fr;
-        max-width: 640px
-    }
-
-    body.is-login .hero-panel,
-    body.is-login .auth-panel {
-        min-height: auto
     }
 }
 
