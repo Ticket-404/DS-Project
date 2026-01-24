@@ -9,7 +9,7 @@ export const render = () => `
             <div class="history-header">
                 <div>
                     <h1>My schedule</h1>
-                    <p class="muted">Week: 19 Jan 2026 - 19 Jan 2026</p>
+                    <p class="muted" data-week-range>Week: --</p>
                 </div>
             </div>
         </section>
@@ -42,6 +42,28 @@ const formatDay = (isoDate) => {
     if (!isoDate) return "--";
     const date = new Date(isoDate);
     return date.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+};
+
+const getWeekStartMonday = (baseDate = new Date()) => {
+    const day = baseDate.getDay();
+    const monday = new Date(baseDate);
+
+    if (day === 0) {
+        monday.setDate(baseDate.getDate() + 1);
+    } else if (day === 6) {
+        monday.setDate(baseDate.getDate() + 2);
+    } else {
+        monday.setDate(baseDate.getDate() - (day - 1));
+    }
+
+    return monday;
+};
+
+const formatWeekRange = () => {
+    const monday = getWeekStartMonday();
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    return `${formatDay(monday)} - ${formatDay(friday)}`;
 };
 
 const formatWeekday = (isoDate) => {
@@ -96,6 +118,12 @@ const fetchAndRenderSchedule = async (currentUser, scheduleBody) => {
 export const onMount = async () => {
     const currentUser = getCurrentUser();
     const scheduleBody = document.querySelector("[data-schedule-body]");
+    const weekRangeEl = document.querySelector("[data-week-range]");
+
+    if (weekRangeEl) {
+        weekRangeEl.textContent = `Week: ${formatWeekRange()}`;
+    }
+
     if (!currentUser || !scheduleBody) return;
 
     try {
@@ -115,9 +143,13 @@ export const onMount = async () => {
 export const refresh = async () => {
     const currentUser = getCurrentUser();
     const scheduleBody = document.querySelector("[data-schedule-body]");
+    const weekRangeEl = document.querySelector("[data-week-range]");
     if (!currentUser || !scheduleBody) return;
     try {
         await fetchAndRenderSchedule(currentUser, scheduleBody);
+        if (weekRangeEl) {
+            weekRangeEl.textContent = `Week: ${formatWeekRange()}`;
+        }
     } catch (error) {
         // Ignore refresh errors.
     }

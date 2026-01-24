@@ -82,6 +82,21 @@ const formatMode = (mode) => {
     return String(mode).replace(/_/g, " ");
 };
 
+const toLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+};
+
+const parseLocalDate = (value) => {
+    if (!value) return null;
+    const parts = value.split("-").map((part) => Number(part));
+    if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) return null;
+    const [year, month, day] = parts;
+    return new Date(year, month - 1, day);
+};
+
 const getWeekStartMonday = () => {
     const now = new Date();
     const day = now.getDay();
@@ -95,16 +110,17 @@ const getWeekStartMonday = () => {
         monday.setDate(now.getDate() - (day - 1));
     }
 
-    return monday.toISOString().slice(0, 10);
+    return toLocalDateString(monday);
 };
 
 const toCalendarDay = (weekOf, dayOfWeek) => {
     if (!weekOf || !dayOfWeek) return null;
-    const base = new Date(weekOf);
+    const base = parseLocalDate(weekOf);
+    if (!base) return null;
     const offset = Number(dayOfWeek) - 1;
     if (Number.isNaN(offset)) return null;
     base.setDate(base.getDate() + offset);
-    return base.toISOString().slice(0, 10);
+    return toLocalDateString(base);
 };
 
 const rowTemplate = () => `

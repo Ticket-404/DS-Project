@@ -104,14 +104,26 @@ const formatMode = (mode) => {
     if (!mode) return "--";
     return String(mode).replace(/_/g, " ");
 };
-const formatWeekRange = (slots) => {
-    if (!slots.length) return "--";
-    const dates = slots.map((slot) => slot.calendar_day).filter(Boolean);
-    if (!dates.length) return "--";
-    const sorted = dates.slice().sort();
-    const first = formatDay(sorted[0]);
-    const last = formatDay(sorted[sorted.length - 1]);
-    return `${first} - ${last}`;
+const getWeekStartMonday = (baseDate = new Date()) => {
+    const day = baseDate.getDay();
+    const monday = new Date(baseDate);
+
+    if (day === 0) {
+        monday.setDate(baseDate.getDate() + 1);
+    } else if (day === 6) {
+        monday.setDate(baseDate.getDate() + 2);
+    } else {
+        monday.setDate(baseDate.getDate() - (day - 1));
+    }
+
+    return monday;
+};
+
+const formatWeekRange = () => {
+    const monday = getWeekStartMonday();
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    return `${formatDay(monday)} - ${formatDay(friday)}`;
 };
 
 const mergeSchedules = (slots, approvals) => {
@@ -202,6 +214,10 @@ export const onMount = async () => {
         setInterval(updateClock, 1000);
     }
 
+    if (weekRangeEl) {
+        weekRangeEl.textContent = `Week: ${formatWeekRange()}`;
+    }
+
     if (!currentUser || !scheduleBody) return;
 
     const showAll = currentUser.is_admin === true || isTeamRole(currentUser.role);
@@ -249,8 +265,7 @@ export const onMount = async () => {
             scheduleBody.innerHTML = renderScheduleRows(visibleRows, showAll);
 
             if (weekRangeEl) {
-                const rangeSource = visibleRows.length ? visibleRows : cachedRows;
-                weekRangeEl.textContent = `Week: ${formatWeekRange(rangeSource)}`;
+                weekRangeEl.textContent = `Week: ${formatWeekRange()}`;
             }
         }
 
@@ -268,8 +283,7 @@ export const onMount = async () => {
         scheduleBody.innerHTML = renderScheduleRows(visibleRows, showAll);
 
         if (weekRangeEl) {
-            const rangeSource = visibleRows.length ? visibleRows : combined;
-            weekRangeEl.textContent = `Week: ${formatWeekRange(rangeSource)}`;
+            weekRangeEl.textContent = `Week: ${formatWeekRange()}`;
         }
     } catch (error) {
         scheduleBody.innerHTML = `<tr><td colspan="4">Unable to load schedule.</td></tr>`;
@@ -328,8 +342,7 @@ export const refresh = async () => {
             : combined;
         scheduleBody.innerHTML = renderScheduleRows(visibleRows, showAll);
         if (weekRangeEl) {
-            const rangeSource = visibleRows.length ? visibleRows : combined;
-            weekRangeEl.textContent = `Week: ${formatWeekRange(rangeSource)}`;
+            weekRangeEl.textContent = `Week: ${formatWeekRange()}`;
         }
     } catch (error) {
         // Ignore refresh errors.
